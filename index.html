@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Doctor Finder Chatbot</title>
+    <style>
+        body { font-family: Arial, sans-serif; text-align: center; margin-top: 50px; }
+        input, select, button { padding: 10px; margin: 5px; }
+        #response { margin-top: 20px; font-weight: bold; }
+        .doctor-card {
+            border: 1px solid #ddd;
+            padding: 10px;
+            margin: 10px auto;
+            width: 60%;
+            text-align: left;
+            background-color: #f9f9f9;
+            border-radius: 8px;
+        }
+    </style>
+</head>
+<body>
+    <h2>Find the Right Doctor</h2>
+
+    <label for="category">Select Category:</label>
+    <select id="category">
+        <option value="">Not Sure (Enter Symptoms Below)</option>
+        <option value="Dermatologist">Dermatologist</option>
+        <option value="Orthopedic_surgeon">Orthopedic Surgeon</option>
+        <option value="General_Physician">General Physician</option>
+        <option value="Gynecologis">Gynecologist</option>
+        <option value="Obstetrician">Obstetrician</option>
+        <option value="Sexologist">Sexologist</option>
+        <option value="Cosmetic_Aesthetic_Dentist">Cosmetic Aesthetic Dentist</option>
+        <option value="Periodontist">Periodontist</option>
+        <option value="Dental_Surgeon">Dental Surgeon</option>
+        <option value="AYUSHHomoeopath">AYUSH Homoeopath</option>
+    </select>
+
+    <br>
+    <input type="text" id="symptoms" placeholder="Enter symptoms (e.g., headache)">
+    <button onclick="findDoctor()">Search</button>
+
+    <h3>Filters</h3>
+    <label><input type="checkbox" class="filter" value="exp_5"> More than 5 Years Experience</label>
+    <label><input type="checkbox" class="filter" value="exp_2"> Less than 2 Years Experience</label>
+    <br>
+    <label><input type="checkbox" class="filter" value="fee_500"> Below ₹500</label>
+    <label><input type="checkbox" class="filter" value="fee_1000"> ₹500 - ₹1000</label>
+    <label><input type="checkbox" class="filter" value="fee_above_1000"> Above ₹1000</label>
+    <br>
+    <label><input type="checkbox" class="filter" value="city_bangalore"> Bangalore</label>
+
+    <div id="response"></div>
+
+    <script>
+        const symptomsToCategory = {
+            "red patch": ["Dermatologist"],
+            "pimple": ["Dermatologist"],
+            "knee": ["Orthopedic_surgeon"],
+            "headache": ["General_Physician"],
+            "fever": ["General_Physician"],
+            "pregnancy": ["Gynecologis"],
+            "sexual health": ["Sexologist"],
+            "teeth whitening": ["Cosmetic_Aesthetic_Dentist"],
+            "gum bleeding": ["Periodontist"],
+            "toothache": ["Dental_Surgeon"],
+            "homeopathic treatment": ["AYUSHHomoeopath"]
+        };
+
+        function extractKeyword(sentence) {
+            const words = sentence.toLowerCase().split(/\s+/);
+            for (const word of words) {
+                if (symptomsToCategory[word]) return word;
+            }
+            return null;
+        }
+
+        function findDoctor() {
+            const category = document.getElementById("category").value;
+            const symptomInput = document.getElementById("symptoms").value.trim();
+            const keyword = extractKeyword(symptomInput);
+            let searchCategories = category ? [category] : (keyword ? symptomsToCategory[keyword] : []);
+
+            if (!keyword && !category) {
+                document.getElementById("response").innerText = "Try to be more specific.";
+                return;
+            }
+
+            if (!searchCategories || searchCategories.length === 0) {
+                document.getElementById("response").innerText = "No matching category found. Try different symptoms.";
+                return;
+            }
+
+            let doctorResults = [];
+
+            Promise.all(searchCategories.map(cat => fetch(`${cat}.json`).then(res => res.json())))
+                .then(filesData => {
+                    filesData.forEach(data => doctorResults.push(...data));
+
+                    // Apply Filters
+                    const filters = Array.from(document.querySelectorAll(".filter:checked")).map(f => f.value);
+
+                    if (filters.includes("exp_5")) {
+                        doctorResults = doctorResults.filter(doc => parseInt(doc["Years of Experience"]) > 5);
+                    }
+                    if (filters.includes("exp_2")) {
+                        doctorResults = doctorResults.filter(doc => parseInt(doc["Years of Experience"]) < 2);
+                    }
+                    if (filters.includes("fee_500")) {
+                        doctorResults = doctorResults.filter(doc => parseInt(doc["Consult Fee"].replace("₹", "")) < 500);
+                    }
+                    if (filters.includes("fee_1000")) {
+                        doctorResults = doctorResults.filter(doc => {
+                            const fee = parseInt(doc["Consult Fee"].replace("₹", ""));
+                            return fee >= 500 && fee <= 1000;
+                        });
+                    }
+                    if (filters.includes("fee_above_1000")) {
+                        doctorResults = doctorResults.filter(doc => parseInt(doc["Consult Fee"].replace("₹", "")) > 1000);
+                    }
+                    if (filters.includes("city_bangalore")) {
+                        doctorResults = doctorResults.filter(doc => doc.City.toLowerCase() === "bangalore");
+                    }
+
+                    // Sorting by Experience DESC and Fee ASC
+                    doctorResults.sort((a, b) =>
+                        parseInt(b["Years of Experience"]) - parseInt(a["Years of Experience"]) ||
+                        parseInt(a["Consult Fee"].replace("₹", "")) - parseInt(b["Consult Fee"].replace("₹", ""))
+                    );
+
+                    console.log("Doctors Found:", doctorResults);
+
+                    document.getElementById("response").innerHTML = doctorResults.length
+                        ? doctorResults.map(doc =>
+                            `<div class="doctor-card">
+                                <p><b>${doc.Name}</b> - ${doc.Speciality}</p>
+                                <p>Experience: ${doc["Years of Experience"]} years</p>
+                                <p>Fee: ${doc["Consult Fee"]}</p>
+                                <p>Location: ${doc.Location}, ${doc.City}</p>
+                            </div>`
+                        ).join('')
+                        : "No doctors found.";
+                })
+                .catch(error => console.error("Error loading doctor data:", error));
+        }
+    </script>
+</body>
+</html>
