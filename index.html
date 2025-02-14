@@ -5,90 +5,191 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Doctor Finder Chatbot</title>
     <style>
-        body { font-family: Arial, sans-serif; text-align: center; margin-top: 50px; }
-        input, select, button { padding: 10px; margin: 5px; }
-        #response { margin-top: 20px; font-weight: bold; }
+        /* General Styles */
+        body {
+            font-family: 'Poppins', sans-serif;
+            text-align: center;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f9;
+            color: #333;
+        }
+
+        /* Dark Mode */
+        body.dark-mode {
+            background-color: #1e1e2e;
+            color: #fff;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 50px auto;
+            padding: 20px;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        body.dark-mode .container {
+            background: #2a2a3b;
+            box-shadow: 0px 4px 10px rgba(255, 255, 255, 0.1);
+        }
+
+        h2 {
+            color: #007BFF;
+        }
+
+        body.dark-mode h2 {
+            color: #63b3ed;
+        }
+
+        /* Inputs & Buttons */
+        select, input {
+            width: 90%;
+            padding: 12px;
+            margin: 10px 0;
+            border: 2px solid #007BFF;
+            border-radius: 5px;
+            font-size: 16px;
+            outline: none;
+            transition: 0.3s;
+        }
+
+        body.dark-mode select,
+        body.dark-mode input {
+            border-color: #63b3ed;
+            background: #333;
+            color: white;
+        }
+
+        select:focus, input:focus {
+            border-color: #0056b3;
+        }
+
+        button {
+            width: 95%;
+            padding: 12px;
+            background: #007BFF;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 18px;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        button:hover {
+            background: #0056b3;
+        }
+
+        /* Dark Mode Toggle */
+        .toggle-switch {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            cursor: pointer;
+            font-size: 18px;
+        }
+
+        /* Doctor Card Grid */
+        .doctor-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            padding: 20px;
+            margin-top: 20px;
+        }
+
         .doctor-card {
-            border: 1px solid #ddd;
-            padding: 10px;
-            margin: 10px auto;
-            width: 60%;
+            background: #ffffff;
+            padding: 15px;
+            border-radius: 10px;
+            box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
             text-align: left;
-            background-color: #f9f9f9;
-            border-radius: 8px;
+            transition: 0.3s;
+        }
+
+        body.dark-mode .doctor-card {
+            background: #333;
+            color: white;
+        }
+
+        .doctor-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .doctor-card p {
+            margin: 5px 0;
+        }
+
+        .doctor-card strong {
+            color: #007BFF;
+        }
+
+        body.dark-mode .doctor-card strong {
+            color: #63b3ed;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                width: 90%;
+            }
         }
     </style>
 </head>
 <body>
-    <h2>Find the Right Doctor</h2>
 
-    <label for="category">Select Category:</label>
-    <select id="category">
-        <option value="">Not Sure (Enter Symptoms Below)</option>
-        <option value="Dermatologist">Dermatologist</option>
-        <option value="Orthopedic_surgeon">Orthopedic Surgeon</option>
-        <option value="General_Physician">General Physician</option>
-        <option value="Gynecologis">Gynecologist</option>
-        <option value="Obstetrician">Obstetrician</option>
-        <option value="Sexologist">Sexologist</option>
-        <option value="Cosmetic_Aesthetic_Dentist">Cosmetic Aesthetic Dentist</option>
-        <option value="Periodontist">Periodontist</option>
-        <option value="Dental_Surgeon">Dental Surgeon</option>
-        <option value="AYUSHHomoeopath">AYUSH Homoeopath</option>
-    </select>
+    <div class="toggle-switch" onclick="toggleDarkMode()">🌙</div>
 
-    <br>
-    <input type="text" id="symptoms" placeholder="Enter symptoms (e.g., headache)">
-    <button onclick="findDoctor()">Search</button>
+    <div class="container">
+        <h2>Find the Right Doctor</h2>
 
-    <h3>Filters</h3>
-    <label><input type="checkbox" class="filter" value="exp_5"> More than 5 Years Experience</label>
-    <label><input type="checkbox" class="filter" value="exp_2"> Less than 2 Years Experience</label>
-    <br>
-    <label><input type="checkbox" class="filter" value="fee_500"> Below ₹500</label>
-    <label><input type="checkbox" class="filter" value="fee_1000"> ₹500 - ₹1000</label>
-    <label><input type="checkbox" class="filter" value="fee_above_1000"> Above ₹1000</label>
-    <br>
-    <label><input type="checkbox" class="filter" value="city_bangalore"> Bangalore</label>
+        <label for="category">Select Category:</label>
+        <select id="category">
+            <option value="">Not Sure? Enter Symptoms Below</option>
+            <option value="Dermatologist">Dermatologist</option>
+            <option value="Orthopedic_surgeon">Orthopedic Surgeon</option>
+            <option value="General_Physician">General Physician</option>
+            <option value="Gynecologist">Gynecologist</option>
+            <option value="Obstetrician">Obstetrician</option>
+            <option value="Sexologist">Sexologist</option>
+            <option value="Cosmetic_Aesthetic_Dentist">Cosmetic/Aesthetic Dentist</option>
+            <option value="Periodontist">Periodontist</option>
+            <option value="Dental_Surgeon">Dental Surgeon</option>
+            <option value="AYUSHHomoeopath">AYUSH Homoeopath</option>
+        </select>
 
-    <div id="response"></div>
+        <input type="text" id="symptoms" placeholder="Enter symptoms (e.g., 'I have a headache for 3 days')">
+        <button onclick="findDoctor()">Search</button>
+
+        <div id="response" class="doctor-grid"></div>
+    </div>
 
     <script>
-        const symptomsToCategory = {
-            "red patch": ["Dermatologist"],
-            "pimple": ["Dermatologist"],
-            "knee": ["Orthopedic_surgeon"],
-            "headache": ["General_Physician"],
-            "fever": ["General_Physician"],
-            "pregnancy": ["Gynecologis"],
-            "sexual health": ["Sexologist"],
-            "teeth whitening": ["Cosmetic_Aesthetic_Dentist"],
-            "gum bleeding": ["Periodontist"],
-            "toothache": ["Dental_Surgeon"],
-            "homeopathic treatment": ["AYUSHHomoeopath"]
-        };
+        let symptomsToCategory = {};
 
-        function extractKeyword(sentence) {
-            const words = sentence.toLowerCase().split(/\s+/);
-            for (const word of words) {
-                if (symptomsToCategory[word]) return word;
-            }
-            return null;
-        }
+        // Load Symptoms-to-Category Mapping
+        fetch("symptoms_to_category.json")
+            .then(response => response.json())
+            .then(data => symptomsToCategory = data)
+            .catch(error => console.error("Error loading symptoms data:", error));
 
         function findDoctor() {
             const category = document.getElementById("category").value;
             const symptomInput = document.getElementById("symptoms").value.trim();
-            const keyword = extractKeyword(symptomInput);
-            let searchCategories = category ? [category] : (keyword ? symptomsToCategory[keyword] : []);
+            let searchCategories = category ? [category] : [];
 
-            if (!keyword && !category) {
-                document.getElementById("response").innerText = "Try to be more specific.";
-                return;
+            if (!category && symptomInput) {
+                for (let symptom in symptomsToCategory) {
+                    if (symptomInput.toLowerCase().includes(symptom.toLowerCase())) {
+                        searchCategories = symptomsToCategory[symptom] || [];
+                        break;
+                    }
+                }
             }
 
-            if (!searchCategories || searchCategories.length === 0) {
-                document.getElementById("response").innerText = "No matching category found. Try different symptoms.";
+            if (searchCategories.length === 0) {
+                document.getElementById("response").innerHTML = "<p>No matching category found.</p>";
                 return;
             }
 
@@ -98,52 +199,33 @@
                 .then(filesData => {
                     filesData.forEach(data => doctorResults.push(...data));
 
-                    // Apply Filters
-                    const filters = Array.from(document.querySelectorAll(".filter:checked")).map(f => f.value);
+                    doctorResults.sort((a, b) => {
+                        let expA = parseInt(a["Years of Experience"]) || 0;
+                        let expB = parseInt(b["Years of Experience"]) || 0;
+                        let feeA = parseInt(a["Consult Fee"].replace("₹", "")) || 0;
+                        let feeB = parseInt(b["Consult Fee"].replace("₹", "")) || 0;
 
-                    if (filters.includes("exp_5")) {
-                        doctorResults = doctorResults.filter(doc => parseInt(doc["Years of Experience"]) > 5);
-                    }
-                    if (filters.includes("exp_2")) {
-                        doctorResults = doctorResults.filter(doc => parseInt(doc["Years of Experience"]) < 2);
-                    }
-                    if (filters.includes("fee_500")) {
-                        doctorResults = doctorResults.filter(doc => parseInt(doc["Consult Fee"].replace("₹", "")) < 500);
-                    }
-                    if (filters.includes("fee_1000")) {
-                        doctorResults = doctorResults.filter(doc => {
-                            const fee = parseInt(doc["Consult Fee"].replace("₹", ""));
-                            return fee >= 500 && fee <= 1000;
-                        });
-                    }
-                    if (filters.includes("fee_above_1000")) {
-                        doctorResults = doctorResults.filter(doc => parseInt(doc["Consult Fee"].replace("₹", "")) > 1000);
-                    }
-                    if (filters.includes("city_bangalore")) {
-                        doctorResults = doctorResults.filter(doc => doc.City.toLowerCase() === "bangalore");
-                    }
-
-                    // Sorting by Experience DESC and Fee ASC
-                    doctorResults.sort((a, b) =>
-                        parseInt(b["Years of Experience"]) - parseInt(a["Years of Experience"]) ||
-                        parseInt(a["Consult Fee"].replace("₹", "")) - parseInt(b["Consult Fee"].replace("₹", ""))
-                    );
-
-                    console.log("Doctors Found:", doctorResults);
+                        return expB - expA || feeA - feeB;
+                    });
 
                     document.getElementById("response").innerHTML = doctorResults.length
                         ? doctorResults.map(doc =>
                             `<div class="doctor-card">
-                                <p><b>${doc.Name}</b> - ${doc.Speciality}</p>
+                                <p><strong>${doc.Name}</strong></p>
+                                <p>Speciality: ${doc.Speciality}</p>
                                 <p>Experience: ${doc["Years of Experience"]} years</p>
-                                <p>Fee: ${doc["Consult Fee"]}</p>
-                                <p>Location: ${doc.Location}, ${doc.City}</p>
+                                <p>Consultation Fee: ${doc["Consult Fee"]}</p>
                             </div>`
                         ).join('')
-                        : "No doctors found.";
+                        : "<p>No doctors found.</p>";
                 })
                 .catch(error => console.error("Error loading doctor data:", error));
         }
+
+        function toggleDarkMode() {
+            document.body.classList.toggle("dark-mode");
+        }
     </script>
+
 </body>
 </html>
